@@ -1,0 +1,42 @@
+// Small nested config format
+config = { field* }
+
+field = {
+	id ~ "=" ~ value
+}
+
+nested = { "" }
+
+string = {
+	"\"" ~ string_inner ~ "\""
+}
+string_inner = _{
+	(string_interpolation | char)*
+}
+string_interpolated = {
+	"f" ~ "\"" ~ string_interpolated_inner ~ "\""
+}
+string_interpolated_inner = _{
+	(string_interpolation | char)*
+}
+string_interpolation = _{ "{" ~ domain ~ "}" }
+
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
+
+value = {
+	"true" | "false" | number
+    | string | string_interpolated |domain
+}
+domain = @{ (id | "::")+ }
+number = @{ digit+ }
+id     = @{ (alpha | "_")+ }
+alpha = { 'a'..'z' | 'A'..'Z' }
+digit = { '0'..'9' }
+
+WHITESPACE = _{ (" " | "\t" | "\n")+ }
+

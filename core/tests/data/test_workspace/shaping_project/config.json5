@@ -1,0 +1,8 @@
+{
+  name: 'Test Shaping Project',
+
+  target: 'text',
+  ast_set: 'pest.small_config',
+
+  description: "A little test with some cases"
+}

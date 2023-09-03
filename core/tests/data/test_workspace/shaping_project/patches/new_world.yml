@@ -1,0 +1,18 @@
+enabled: true
+file: 'hello_new_world.scl'
+
+actions:
+  makers:
+    new_world_moon:
+      make: '"moon"'
+
+  replacements:
+    earth_world_typo:
+      location: 'value'
+      reference_location: 'field'
+      from: 'erath'
+      to: """
+      $from
+      another_world = #[new_world_moon]
+      """
+

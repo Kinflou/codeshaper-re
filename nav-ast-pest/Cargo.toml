@@ -1,0 +1,10 @@
+[package]
+name = "codeshaper-nav-ast-pest"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+codeshaper-core = { path = "../core" }
+pest = "2.7.0"
+pest_grammars = "2.7.0"
