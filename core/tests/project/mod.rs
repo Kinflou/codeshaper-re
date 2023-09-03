@@ -5,19 +5,15 @@ use std::path::Path;
 use crate::TEST_WORKSPACE_DIR;
 
 // External Uses
-use once_cell::sync::Lazy;
 use codeshaper_core::project::settings::ProjectConfig;
+use once_cell::sync::Lazy;
 
-
-static TEST_PROJECT_PATH: Lazy<String> = Lazy::new(||
-    format!("{}/shaping_project/", TEST_WORKSPACE_DIR)
-);
+static TEST_PROJECT_PATH: Lazy<String> =
+    Lazy::new(|| format!("{}/shaping_project/", TEST_WORKSPACE_DIR));
 
 #[test]
 fn load_project_config() {
-    let config = ProjectConfig::from_path(
-        Path::new(&*TEST_PROJECT_PATH)
-    ).unwrap();
+    let config = ProjectConfig::from_path(Path::new(&*TEST_PROJECT_PATH)).unwrap();
 
     pretty_assertions::assert_eq!(
         config,

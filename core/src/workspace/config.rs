@@ -7,11 +7,9 @@ use std::path::Path;
 
 // External Uses
 use eyre::{bail, Context, Result};
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
-
-#[derive(Debug, Clone, PartialEq)]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WorkspaceConfig {
     pub name: String,
     pub project: String,
@@ -21,15 +19,14 @@ pub struct WorkspaceConfig {
     #[serde(default)]
     pub backup: String,
 
-    pub result: ResultOptions
+    pub result: ResultOptions,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ResultOptions {
     Replace,
     BackupAndReplace,
-    CreateNew
+    CreateNew,
 }
 
 impl WorkspaceConfig {
@@ -59,12 +56,13 @@ impl WorkspaceConfig {
     }
 }
 
-
 fn from_extension(content: &str, extension: &str) -> Result<WorkspaceConfig> {
     match extension {
         "json5" => from_json5(content),
         "kdl" => from_kdl(content),
-        &_ => { bail!("") }
+        &_ => {
+            bail!("")
+        }
     }
 }
 
@@ -76,4 +74,3 @@ pub fn from_json5(content: &str) -> Result<WorkspaceConfig> {
 pub fn from_kdl(content: &str) -> Result<WorkspaceConfig> {
     todo!()
 }
-

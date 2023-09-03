@@ -1,14 +1,14 @@
+use downcast_rs::Downcast;
 use std::any::Any;
 use std::cell::{Ref, RefCell, RefMut};
 use std::rc::{Rc, Weak};
-use downcast_rs::Downcast;
 
 use crate::target::{File, Group, Target, TargetIter};
 
 #[derive(Debug)]
 pub struct TextTarget {
     root_group: Rc<RefCell<TextGroup>>,
-    map: Option<TargetIter>
+    map: Option<TargetIter>,
 }
 impl Target for TextTarget {
     fn root_group(&self) -> &Rc<RefCell<dyn Group>> {
@@ -29,7 +29,7 @@ pub struct TextGroup {
     target: Weak<RefCell<TextTarget>>,
     parent: Option<Weak<RefCell<TextGroup>>>,
     groups: Vec<Rc<RefCell<TextGroup>>>,
-    files: Vec<Rc<RefCell<TextFile>>>
+    files: Vec<Rc<RefCell<TextFile>>>,
 }
 impl TextGroup {
     fn any_like(&self) -> &dyn Any {
@@ -43,9 +43,7 @@ impl Group for TextGroup {
 
     fn add_group(&mut self, group: Rc<RefCell<dyn Group>>) {
         let group_ref = group.borrow_mut();
-        let grp = RefMut::map(
-            group_ref, |r| r.downcast_mut().unwrap()
-        ) as _;
+        let grp = RefMut::map(group_ref, |r| r.downcast_mut().unwrap()) as _;
 
         self.groups.push(grp);
     }
@@ -58,7 +56,7 @@ impl Group for TextGroup {
 #[derive(Debug)]
 pub struct TextFile {
     parent: Weak<RefCell<TextGroup>>,
-    name: String
+    name: String,
 }
 
 impl File for TextFile {
@@ -67,10 +65,9 @@ impl File for TextFile {
     }
 }
 
-
 mod tests {
-    use std::cell::RefCell;
     use super::*;
+    use std::cell::RefCell;
 
     #[allow(unused)]
     #[test]
@@ -91,15 +88,15 @@ mod tests {
                                         Rc::new_cyclic(|file| {
                                             RefCell::new(TextFile {
                                                 parent: root_group.clone(),
-                                                name: "File Three".to_string()
+                                                name: "File Three".to_string(),
                                             })
                                         }),
                                         Rc::new_cyclic(|file| {
                                             RefCell::new(TextFile {
                                                 parent: root_group.clone(),
-                                                name: "File Four".to_string()
+                                                name: "File Four".to_string(),
                                             })
-                                        })
+                                        }),
                                     ],
                                 })
                             }),
@@ -112,32 +109,32 @@ mod tests {
                                         Rc::new_cyclic(|file| {
                                             RefCell::new(TextFile {
                                                 parent: root_group.clone(),
-                                                name: "File Five".to_string()
+                                                name: "File Five".to_string(),
                                             })
                                         }),
                                         Rc::new_cyclic(|file| {
                                             RefCell::new(TextFile {
                                                 parent: root_group.clone(),
-                                                name: "File SIx".to_string()
+                                                name: "File SIx".to_string(),
                                             })
-                                        })
+                                        }),
                                     ],
                                 })
-                            })
+                            }),
                         ],
                         files: vec![
                             Rc::new_cyclic(|file| {
                                 RefCell::new(TextFile {
                                     parent: root_group.clone(),
-                                    name: "File One".to_string()
+                                    name: "File One".to_string(),
                                 })
                             }),
                             Rc::new_cyclic(|file| {
                                 RefCell::new(TextFile {
                                     parent: root_group.clone(),
-                                    name: "File Two".to_string()
+                                    name: "File Two".to_string(),
                                 })
-                            })
+                            }),
                         ],
                     })
                 }),
@@ -159,4 +156,3 @@ mod tests {
         println!("{:?}", map.next().unwrap());
     }
 }
-

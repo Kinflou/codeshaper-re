@@ -7,18 +7,15 @@ use std::path::Path;
 // External Uses
 use eyre::{anyhow, bail, Context, ContextCompat, Result};
 use glob::glob;
-use serde_derive::{Deserialize, Serialize};
 use knuffel::parse;
+use serde_derive::{Deserialize, Serialize};
 
-
-#[derive(Default, Debug, Clone, PartialEq)]
-#[derive(Serialize, Deserialize)]
-#[derive(knuffel::Decode)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, knuffel::Decode)]
 pub struct ProjectConfig {
     pub name: String,
     pub target: String,
     pub ast_set: String,
-    pub description: String
+    pub description: String,
 }
 
 impl ProjectConfig {
@@ -28,12 +25,13 @@ impl ProjectConfig {
             .context("Failed to search for glob pattern")
             .unwrap();
 
-        let settings = search.next()
-            .context(
-                format!(
-                    "Could not find any file named 'config.*' as '*' being a\
-                    \nsupported extension at {}", path.to_str().unwrap())
-                )
+        let settings = search
+            .next()
+            .context(format!(
+                "Could not find any file named 'config.*' as '*' being a\
+                    \nsupported extension at {}",
+                path.to_str().unwrap()
+            ))
             .unwrap()?;
 
         let extension = settings.extension().unwrap().to_str().unwrap();
@@ -45,15 +43,18 @@ impl ProjectConfig {
     }
 }
 
-
 fn from_extension(content: &str, extension: &str) -> Result<ProjectConfig> {
     match extension {
         "json5" => from_json5(content),
         "kdl" => from_kdl(content),
-        &_ => { bail!("Project settings extension '{}' is not supported", extension) }
+        &_ => {
+            bail!(
+                "Project settings extension '{}' is not supported",
+                extension
+            )
+        }
     }
 }
-
 
 // TODO: Likely we should only have one format, and that would be KDL, so see what's necessary
 //       to remove this
@@ -61,9 +62,6 @@ fn from_json5(content: &str) -> Result<ProjectConfig> {
     json5::from_str(content).map_err(|err| anyhow!("{}", err))
 }
 
-
 fn from_kdl(content: &str) -> Result<ProjectConfig> {
-    parse::<ProjectConfig>("settings.kdl", content)
-        .map_err(|err| anyhow!("{:#?}", err))
+    parse::<ProjectConfig>("settings.kdl", content).map_err(|err| anyhow!("{:#?}", err))
 }
-

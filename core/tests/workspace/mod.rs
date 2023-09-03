@@ -1,6 +1,6 @@
 // Standard Uses
-use std::path::Path;
 use once_cell::sync::Lazy;
+use std::path::Path;
 
 // Crate Uses
 use crate::TEST_WORKSPACE_DIR;
@@ -9,18 +9,15 @@ use crate::TEST_WORKSPACE_DIR;
 use codeshaper_core::workspace::config::{ResultOptions, WorkspaceConfig};
 use codeshaper_core::workspace::operation::Operation;
 
-
-static TEST_WORKSPACE_CONFIG_PATH: Lazy<String> = Lazy::new(||
-    format!("{}/config.json5", TEST_WORKSPACE_DIR)
-);
+static TEST_WORKSPACE_CONFIG_PATH: Lazy<String> =
+    Lazy::new(|| format!("{}/config.json5", TEST_WORKSPACE_DIR));
 
 #[test]
 fn load_workspace_config() {
-    let config = WorkspaceConfig::from_file(
-        Path::new(&*TEST_WORKSPACE_CONFIG_PATH)
-    ).unwrap();
+    let config = WorkspaceConfig::from_file(Path::new(&*TEST_WORKSPACE_CONFIG_PATH)).unwrap();
 
-    pretty_assertions::assert_eq!(config,
+    pretty_assertions::assert_eq!(
+        config,
         WorkspaceConfig {
             name: "Test Workspace".to_string(),
             project: "tests/data/test_workspace/shaping_project/".to_string(),
@@ -34,9 +31,7 @@ fn load_workspace_config() {
 
 #[test]
 fn load_workspace_operation() {
-    let config = WorkspaceConfig::from_file(
-        Path::new(&*TEST_WORKSPACE_CONFIG_PATH)
-    ).unwrap();
+    let config = WorkspaceConfig::from_file(Path::new(&*TEST_WORKSPACE_CONFIG_PATH)).unwrap();
 
     let workspace = Operation::from_config(config.clone());
 

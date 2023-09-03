@@ -6,7 +6,7 @@ pub enum Expression<'a> {
     Action(Vec<Expression<'a>>),
     Expr {
         name: &'a str,
-        args: Vec<Expression<'a>>
+        args: Vec<Expression<'a>>,
     },
     Text(&'a str),
 }

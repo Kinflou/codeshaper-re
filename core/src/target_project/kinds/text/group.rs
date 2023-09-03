@@ -8,26 +8,23 @@ use crate::target_project::{File, Group, Target};
 
 // External Uses
 
-
 pub struct TextGroup {
     pub name: String,
     pub root: Option<Rc<RefCell<dyn Target>>>,
     pub parent: Option<Weak<RefCell<dyn Group>>>,
     pub groups: Vec<Weak<RefCell<dyn Group>>>,
-    pub files: Vec<Weak<RefCell<dyn File>>>
+    pub files: Vec<Weak<RefCell<dyn File>>>,
 }
 
 impl TextGroup {
     pub fn new_shared(name: String) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
-            Self {
-                name,
-                root: None,
-                parent: None,
-                groups: vec![],
-                files: vec![]
-            }
-        ))
+        Rc::new(RefCell::new(Self {
+            name,
+            root: None,
+            parent: None,
+            groups: vec![],
+            files: vec![],
+        }))
     }
 }
 
@@ -40,11 +37,21 @@ impl Debug for TextGroup {
 }
 
 impl Group for TextGroup {
-    fn name(&self) -> &String { &self.name }
-    fn root(&self) -> &Option<Rc<RefCell<dyn Target>>> { &self.root }
-    fn parent(&self) -> &Option<Weak<RefCell<dyn Group>>> { &self.parent }
-    fn groups(&self) -> &Vec<Weak<RefCell<dyn Group>>> { &self.groups }
-    fn files(&self) -> &Vec<Weak<RefCell<dyn File>>> { &self.files }
+    fn name(&self) -> &String {
+        &self.name
+    }
+    fn root(&self) -> &Option<Rc<RefCell<dyn Target>>> {
+        &self.root
+    }
+    fn parent(&self) -> &Option<Weak<RefCell<dyn Group>>> {
+        &self.parent
+    }
+    fn groups(&self) -> &Vec<Weak<RefCell<dyn Group>>> {
+        &self.groups
+    }
+    fn files(&self) -> &Vec<Weak<RefCell<dyn File>>> {
+        &self.files
+    }
 
     fn add_root(&mut self, root: Rc<RefCell<dyn Target>>) {
         self.root = Some(root);

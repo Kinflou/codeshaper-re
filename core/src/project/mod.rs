@@ -5,14 +5,13 @@ pub mod settings;
 use std::path::{Path, PathBuf};
 
 // Crate Uses
-use crate::shaping::patch::Patch;
 use crate::project::settings::ProjectConfig;
+use crate::shaping::patch::Patch;
 
 // External Uses
-use eyre::Result;
 use eyre::bail;
+use eyre::Result;
 use glob::glob;
-
 
 #[derive(Debug)]
 pub struct Project {
@@ -28,7 +27,10 @@ impl Project {
         }
 
         if !path.exists() {
-            bail!("Project settings directory does not exist {:?}", path.to_str().unwrap());
+            bail!(
+                "Project settings directory does not exist {:?}",
+                path.to_str().unwrap()
+            );
         }
 
         let settings = ProjectConfig::from_path(path)?;
@@ -48,7 +50,7 @@ impl Project {
 
         let search = glob(&search).expect("Failed to read glob pattern");
 
-        for entry in search{
+        for entry in search {
             match entry {
                 Ok(path) => paths.push(path),
                 Err(e) => println!("{:?}", e),
@@ -60,7 +62,5 @@ impl Project {
 
             patches.push(patch.unwrap());
         }
-
     }
 }
-

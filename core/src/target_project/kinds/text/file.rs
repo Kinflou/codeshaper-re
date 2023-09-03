@@ -14,27 +14,30 @@ pub struct TextFile {
 
     pub parent: Option<Box<dyn Group>>,
     // pub controller: Option<Controller>,
-    pub state: FileState
+    pub state: FileState,
 }
 
 impl TextFile {
     pub fn new_shared(name: String, content: String) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
-            Self {
-                name,
-                content,
-                parent: None,
-                // controller: None,
-                state: Default::default(),
-            }
-        ))
+        Rc::new(RefCell::new(Self {
+            name,
+            content,
+            parent: None,
+            // controller: None,
+            state: Default::default(),
+        }))
     }
 }
 
 impl File for TextFile {
-    fn name(&self) -> &String { &self.name }
-    fn parent(&self) -> &Option<Box<dyn Group>> { &self.parent }
+    fn name(&self) -> &String {
+        &self.name
+    }
+    fn parent(&self) -> &Option<Box<dyn Group>> {
+        &self.parent
+    }
     // fn controller(&self) -> &Option<Controller> { &self.controller }
-    fn state(&self) -> &FileState { &self.state }
+    fn state(&self) -> &FileState {
+        &self.state
+    }
 }
-

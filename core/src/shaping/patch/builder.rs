@@ -5,9 +5,7 @@ use crate::shaping::patch::Actions;
 
 // External Uses
 
-
-#[derive(Default, Clone, Debug, PartialEq)]
-#[derive(knuffel::Decode)]
+#[derive(Default, Clone, Debug, PartialEq, knuffel::Decode)]
 pub struct Builder {
     #[knuffel(argument)]
     pub name: String,
@@ -25,4 +23,3 @@ pub struct Builder {
     pub build: String,
     pub actions: Actions,
 }
-

@@ -1,4 +1,3 @@
-
 #[allow(unused)]
 enum Node<Item> {
     Leaf(Item),
@@ -51,14 +50,14 @@ impl<'a, It> Iterator for NodeIter<'a, It> {
     }
 }
 
-
 impl<It> Default for NodeIter<'_, It> {
     fn default() -> Self {
-        NodeIter { children: &[], parent: None }
+        NodeIter {
+            children: &[],
+            parent: None,
+        }
     }
 }
-
-
 
 mod tests {
     #[allow(unused)]
@@ -69,17 +68,11 @@ mod tests {
         let tree = Node::Children(vec![
             Node::Leaf(5),
             Node::Leaf(4),
-            Node::Children(vec![
-                Node::Leaf(3),
-                Node::Leaf(2),
-                Node::Children(vec![]),
-            ]),
-            Node::Children(vec![
-                Node::Children(vec![
-                    Node::Children(vec![Node::Leaf(1)]),
-                    Node::Leaf(0),
-                ]),
-            ]),
+            Node::Children(vec![Node::Leaf(3), Node::Leaf(2), Node::Children(vec![])]),
+            Node::Children(vec![Node::Children(vec![
+                Node::Children(vec![Node::Leaf(1)]),
+                Node::Leaf(0),
+            ])]),
         ]);
 
         let nums: Vec<i32> = tree.iter().copied().collect();

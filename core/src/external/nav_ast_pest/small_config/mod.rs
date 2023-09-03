@@ -9,11 +9,11 @@ use crate::navigation_ast::Navigator;
 
 // External Uses
 
-
 pub struct SmallConfigNavigator;
 impl SmallConfigNavigator {
-    pub fn new_box() -> Box<dyn Navigator> { Box::new(Self {})}
-
+    pub fn new_box() -> Box<dyn Navigator> {
+        Box::new(Self {})
+    }
 }
 
 impl Navigator for SmallConfigNavigator {
