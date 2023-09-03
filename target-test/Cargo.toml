@@ -1,0 +1,10 @@
+[package]
+name = "target-test"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+downcast-rs = "1.2.0"
+indextree = "4.6.0"
+

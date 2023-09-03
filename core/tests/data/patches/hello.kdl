@@ -1,0 +1,21 @@
+enabled true
+file "greet.scl"
+
+actions {
+    builder "hello_library" {
+        location "field"
+        match "Lets greet (.*?)?"
+        build "Hello #[library_sentence](\\g<1>)!"
+    }
+
+    maker "library_sentence" {
+        arguments "name"
+        make "$[name] Library"
+    }
+
+    replacer "greet_library" location="field" {
+        from ""
+        to "#[hello_library]"
+    }
+}
+

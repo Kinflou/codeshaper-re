@@ -1,0 +1,10 @@
+enabled: true
+file: 'hello_world.scl'
+
+actions:
+  replacements:
+    earth_world_typo:
+      location: 'value'
+      reference_location: 'field'
+      from: 'erath'
+      to: 'earth'
