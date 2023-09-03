@@ -6,9 +6,7 @@ use crate::shaping::patch::Actions;
 // External Uses
 use knuffel::Decode;
 
-
-#[derive(Default, Clone, Debug, PartialEq)]
-#[derive(Decode)]
+#[derive(Default, Clone, Debug, PartialEq, Decode)]
 pub struct Replacer {
     #[knuffel(argument)]
     pub name: String,
@@ -24,7 +22,6 @@ pub struct Replacer {
 
     // #[knuffel(child, unwrap(argument))]
     // pub flags: Option<String>,
-
     #[knuffel(child, unwrap(argument))]
     pub from: String,
 
@@ -32,6 +29,5 @@ pub struct Replacer {
     pub to: String,
 
     #[knuffel(child)]
-    pub actions: Option<Actions>
+    pub actions: Option<Actions>,
 }
-

@@ -6,9 +6,7 @@ use std::collections::HashMap;
 // External Uses
 use knuffel::{Decode, DecodeScalar};
 
-
-#[derive(Default, Clone, Debug, PartialEq)]
-#[derive(Decode)]
+#[derive(Default, Clone, Debug, PartialEq, Decode)]
 pub struct Resolver {
     #[knuffel(argument)]
     pub name: String,
@@ -26,13 +24,12 @@ pub struct Resolver {
     pub index: String,
 
     #[knuffel(argument)]
-    pub default: String
+    pub default: String,
 }
 
-#[derive(Default, Clone, Debug, PartialEq)]
-#[derive(Decode, DecodeScalar)]
+#[derive(Default, Clone, Debug, PartialEq, Decode, DecodeScalar)]
 pub enum Mode {
     #[default]
     List,
-    Switch
+    Switch,
 }

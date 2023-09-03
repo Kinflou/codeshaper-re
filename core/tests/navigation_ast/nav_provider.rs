@@ -5,7 +5,6 @@
 // External Uses
 use codeshaper_core::navigation_ast;
 
-
 #[test]
 fn find_provider() {
     let provider = navigation_ast::find_provider("pest");

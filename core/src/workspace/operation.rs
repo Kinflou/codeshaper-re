@@ -2,20 +2,18 @@
 use std::path::Path;
 
 // Crate Uses
-use crate::workspace::config::WorkspaceConfig;
 use crate::project::Project;
+use crate::workspace::config::WorkspaceConfig;
 
 // External Uses
-use eyre::{Result};
+use eyre::Result;
 use stopwatch::Stopwatch;
-
 
 pub struct Operation {
     pub configuration: WorkspaceConfig,
     pub stop_watch: Stopwatch,
     pub project: Option<Project>,
 }
-
 
 impl Operation {
     pub fn from_config(config: WorkspaceConfig) -> Result<Self> {
@@ -42,4 +40,3 @@ impl Operation {
         todo!()
     }
 }
-

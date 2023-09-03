@@ -1,15 +1,14 @@
 use std::any::Any;
 // Standard Uses
+use downcast_rs::{impl_downcast, Downcast};
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::rc::Rc;
-use downcast_rs::{Downcast, impl_downcast};
 
 // Crate Uses
 
 // External Uses
 use indextree::{Arena, NodeId};
-
 
 pub trait Target: Debug {
     fn root_group(&self) -> &Rc<RefCell<dyn Group>>;
@@ -21,7 +20,8 @@ pub trait Target: Debug {
 
         fn recurse_new(
             arena: &mut Arena<Rc<RefCell<dyn Group>>>,
-            node_id: NodeId, group: &Rc<RefCell<dyn Group>>
+            node_id: NodeId,
+            group: &Rc<RefCell<dyn Group>>,
         ) {
             let id = arena.new_node(group.clone());
             let group_ref = group.borrow();
@@ -40,7 +40,11 @@ pub trait Target: Debug {
             recurse_new(&mut arena, root_id, group);
         }
 
-        TargetIter { arena, current: root_id, file_index: 0, }
+        TargetIter {
+            arena,
+            current: root_id,
+            file_index: 0,
+        }
     }
 
     fn refresh_state(&mut self);
@@ -57,14 +61,12 @@ pub trait File: Debug {
     fn name(&self) -> &String;
 }
 
-
 #[derive(Debug)]
 pub struct TargetIter {
     pub(crate) arena: Arena<Rc<RefCell<dyn Group>>>,
     pub(crate) current: NodeId,
-    pub(crate) file_index: usize
+    pub(crate) file_index: usize,
 }
-
 
 impl Iterator for TargetIter {
     type Item = Rc<RefCell<dyn File>>;
@@ -80,30 +82,29 @@ impl Iterator for TargetIter {
                 self.current = next;
                 self.file_index = 0;
 
-                return self.next()
+                return self.next();
             };
 
             if let Some(child) = node.first_child() {
                 self.current = child;
                 self.file_index = 0;
 
-                return self.next()
+                return self.next();
             }
 
             if let Some(parent) = node.parent() {
                 self.current = parent;
                 self.file_index = 0;
 
-                return self.next()
+                return self.next();
             };
 
-            return None
-
+            return None;
         }
 
         let file = &group.files()[self.file_index];
         self.file_index += 1;
 
-        return Some(file.clone())
+        return Some(file.clone());
     }
 }

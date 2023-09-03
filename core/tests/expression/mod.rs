@@ -3,12 +3,11 @@
 // Crate Uses
 
 // External Uses
-use codeshaper_core::expression::syntax::{Expression, parser};
-use codeshaper_core::expression::visitor::{ExpressionVisitor, navigate_expression};
-
+use codeshaper_core::expression::syntax::{parser, Expression};
+use codeshaper_core::expression::visitor::{navigate_expression, ExpressionVisitor};
 
 pub struct TestVisitor {
-    parts: Vec<String>
+    parts: Vec<String>,
 }
 
 #[allow(unused)]
@@ -16,7 +15,9 @@ impl ExpressionVisitor for TestVisitor {
     fn visit_expression(&mut self, name: &str, args: Vec<Expression>) {
         // The reason we just directly get the argument text here is just to
         // pretend we resolved the given action and its arguments
-        let Expression::Text(arg) = args[0] else { panic!() };
+        let Expression::Text(arg) = args[0] else {
+            panic!()
+        };
 
         self.parts.push(arg.to_owned());
     }
@@ -26,7 +27,6 @@ impl ExpressionVisitor for TestVisitor {
     }
 }
 
-
 #[test]
 pub fn visit_expression_endpoints() {
     let expression = "\"A\" #[greet](\"hello\") \"world\"";
@@ -35,9 +35,5 @@ pub fn visit_expression_endpoints() {
 
     navigate_expression(&mut visitor, ast);
 
-    pretty_assertions::assert_eq!(
-        visitor.parts,
-        vec!["A", "hello", "world"]
-    );
+    pretty_assertions::assert_eq!(visitor.parts, vec!["A", "hello", "world"]);
 }
-
