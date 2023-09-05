@@ -1,7 +1,7 @@
 // Standard Uses
-use std::collections::HashMap;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use std::collections::HashMap;
 
 // Crate Uses
 
@@ -25,7 +25,7 @@ pub struct Project {
 }
 
 impl Project {
-    pub fn from_path(path: &Path) -> Result<Self> {
+    pub fn from_path(path: PathBuf) -> Result<Self> {
         let search_path = if path.is_relative() {
             path.to_path_buf()
         } else {

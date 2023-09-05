@@ -20,4 +20,5 @@ stopwatch = "0.0.7"
 
 downcast-rs = "1.2.0"
 as-any = "0.3.0"
+indextree = "4.6.0"
 

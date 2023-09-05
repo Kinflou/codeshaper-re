@@ -1,34 +1,57 @@
 // Standard Uses
-use std::cell::RefCell;
 use std::fmt::{Debug, Formatter};
-use std::rc::{Rc, Weak};
+use std::marker::PhantomData;
 
 // Crate Uses
-use crate::target_project::{File, Group, Target};
+use crate::target_project::kinds::text::file::TextFile;
+use crate::target_project::kinds::text::TextSolution;
+use crate::target_project::{Group, Target};
 
 // External Uses
+use indextree::NodeId;
 
-pub struct TextGroup {
+
+#[derive(PartialEq)]
+pub struct TextGroup<'a> {
     pub name: String,
-    pub root: Option<Rc<RefCell<dyn Target>>>,
-    pub parent: Option<Weak<RefCell<dyn Group>>>,
-    pub groups: Vec<Weak<RefCell<dyn Group>>>,
-    pub files: Vec<Weak<RefCell<dyn File>>>,
+    // pub root: &'a RefCell<TextSolution<'a>>,
+    pub parent: Option<NodeId>,
+    pub groups: Vec<NodeId>,
+    pub files: Vec<TextFile>,
+    p: PhantomData<&'a TextGroup<'a>>
 }
 
-impl TextGroup {
-    pub fn new_shared(name: String) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Self {
-            name,
-            root: None,
-            parent: None,
-            groups: vec![],
-            files: vec![],
-        }))
+#[allow(unused)]
+impl<'a> TextGroup<'a> {
+    pub fn new(
+        target: &mut Box<TextSolution<'a>>,
+        parent_id: Option<NodeId>,
+        name: String,
+        groups: Vec<TextGroup<'a>>,
+        files: Vec<TextFile>,
+    ) -> Self {
+        let mut sub_groups = vec![];
+
+        for sub_group in groups {
+            let id = target.graph().new_node(sub_group);
+
+            if let Some(parent_id) = parent_id {
+                use std::borrow::BorrowMut;
+                id.append(parent_id, target.graph().borrow_mut())
+            }
+
+            sub_groups.push(id);
+        }
+
+        Self {
+            name, parent: parent_id,
+            groups: sub_groups, files,
+            p: Default::default(),
+        }
     }
 }
 
-impl Debug for TextGroup {
+impl<'a> Debug for TextGroup<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("TextGroup")
             .field("groups", &self.groups)
@@ -36,28 +59,23 @@ impl Debug for TextGroup {
     }
 }
 
-impl Group for TextGroup {
+#[allow(unused)]
+impl<'a> Group for TextGroup<'a> {
+    type Group = Self;
+    type File = TextFile;
+
     fn name(&self) -> &String {
         &self.name
     }
-    fn root(&self) -> &Option<Rc<RefCell<dyn Target>>> {
-        &self.root
-    }
-    fn parent(&self) -> &Option<Weak<RefCell<dyn Group>>> {
-        &self.parent
-    }
-    fn groups(&self) -> &Vec<Weak<RefCell<dyn Group>>> {
+    fn parent(&self) -> &Option<NodeId> { &self.parent }
+    fn groups(&self) -> &Vec<NodeId> {
         &self.groups
     }
-    fn files(&self) -> &Vec<Weak<RefCell<dyn File>>> {
+    fn files(&self) -> &Vec<Self::File> {
         &self.files
     }
 
-    fn add_root(&mut self, root: Rc<RefCell<dyn Target>>) {
-        self.root = Some(root);
-    }
-
-    fn add_file(&mut self, file: Weak<RefCell<dyn File>>) {
-        self.files.push(file);
+    fn add_group(&mut self, group: Self::Group) -> NodeId {
+        todo!()
     }
 }

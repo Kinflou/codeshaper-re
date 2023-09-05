@@ -1,62 +1,119 @@
-use downcast_rs::Downcast;
-use std::any::Any;
-use std::cell::{Ref, RefCell, RefMut};
-use std::rc::{Rc, Weak};
+// Standard Uses
+use std::cell::RefCell;
+use std::rc::Rc;
 
-use crate::target::{File, Group, Target, TargetIter};
+// Crate Uses
+use crate::target::{File, Group, Target};
+
+// External Uses
+use indextree::{Arena, NodeId};
+
 
 #[derive(Debug)]
 pub struct TextTarget {
-    root_group: Rc<RefCell<TextGroup>>,
-    map: Option<TargetIter>,
+    root_group: Option<NodeId>,
+    graph: Arena<TextGroup>,
 }
+
+impl TextTarget {
+    pub(crate) fn new<F>(root: F) -> Rc<RefCell<TextTarget>>
+        where F: FnOnce(Rc<RefCell<TextTarget>>) -> NodeId
+    {
+        let graph = Arena::new();
+        let target = Rc::new(RefCell::new(
+            Self { root_group: None, graph }
+        ));
+
+        let root_group = root(target.clone());
+        let mut target_mut = target.borrow_mut();
+        target_mut.root_group = Some(root_group);
+
+        drop(target_mut);
+
+        target
+    }
+}
+
 impl Target for TextTarget {
-    fn root_group(&self) -> &Rc<RefCell<dyn Group>> {
-        &(self.root_group as _)
+    fn root_group(&self) -> Option<NodeId> {
+        self.root_group
     }
 
-    fn map(&self) -> &Option<TargetIter> {
+    /*
+    fn map(&self) -> Option<&TargetIter> {
         &self.map
     }
+    */
 
     fn refresh_state(&mut self) {
-        self.map = Some(self.iter());
+        todo!()
+        // self.map = Some(self.iter());
     }
 }
 
 #[derive(Debug)]
 pub struct TextGroup {
-    target: Weak<RefCell<TextTarget>>,
-    parent: Option<Weak<RefCell<TextGroup>>>,
-    groups: Vec<Rc<RefCell<TextGroup>>>,
-    files: Vec<Rc<RefCell<TextFile>>>,
+    target: Rc<RefCell<TextTarget>>,
+    parent: Option<NodeId>,
+    pub(crate) groups: Vec<NodeId>,
+    pub(crate) files: Vec<TextFile>,
 }
+
 impl TextGroup {
-    fn any_like(&self) -> &dyn Any {
-        self
+    pub(crate) fn new<F>(
+        target: Rc<RefCell<TextTarget>>, group: F, parent: Option<NodeId>
+    ) -> NodeId
+        where F: FnOnce(NodeId) -> (Vec<NodeId>, Vec<TextFile>)
+    {
+        let this = Self {
+            target: target.clone(),
+            parent,
+            groups: vec![],
+            files: vec![],
+        };
+        let mut target_mut = target.borrow_mut();
+        let this_id = target_mut.graph.new_node(this);
+
+        if let Some(parent) = parent {
+            parent.append(this_id, &mut target_mut.graph)
+        }
+
+        drop(target_mut);
+
+        let (sub_groups, files) = group(this_id);
+        let mut target_mut = target.borrow_mut();
+        let added_group = target_mut.graph.get_mut(this_id).unwrap().get_mut();
+
+        for sub in sub_groups { added_group.groups.push(sub); }
+        added_group.files = files;
+
+        this_id
     }
 }
-impl Group for TextGroup {
-    fn groups(&self) -> &Vec<Rc<RefCell<dyn Group>>> {
-        todo!()
+
+impl Group<TextFile> for TextGroup {
+    fn target(&self) -> Rc<RefCell<dyn Target>> {
+        Rc::clone(&self.target) as _
     }
 
-    fn add_group(&mut self, group: Rc<RefCell<dyn Group>>) {
-        let group_ref = group.borrow_mut();
-        let grp = RefMut::map(group_ref, |r| r.downcast_mut().unwrap()) as _;
-
-        self.groups.push(grp);
-    }
-
-    fn files(&self) -> &Vec<Rc<RefCell<dyn File>>> {
-        todo!()
+    fn files(&self) -> &Vec<TextFile> {
+        &self.files
     }
 }
 
 #[derive(Debug)]
 pub struct TextFile {
-    parent: Weak<RefCell<TextGroup>>,
+    target: Rc<RefCell<TextTarget>>,
+    parent: NodeId,
     name: String,
+}
+
+impl TextFile {
+    pub(crate) fn new(
+        target: Rc<RefCell<TextTarget>>, group_id: NodeId, name: String
+    ) -> Self {
+        Self { target, parent: group_id, name, }
+    }
 }
 
 impl File for TextFile {
@@ -72,80 +129,39 @@ mod tests {
     #[allow(unused)]
     #[test]
     fn test_map() {
-        let target = Rc::new_cyclic(|target| {
-            RefCell::new(TextTarget {
-                root_group: Rc::new_cyclic(|root_group| {
-                    RefCell::new(TextGroup {
-                        target: target.clone(),
-                        parent: None,
-                        groups: vec![
-                            Rc::new_cyclic(|group2| {
-                                RefCell::new(TextGroup {
-                                    target: target.clone(),
-                                    parent: Some(root_group.clone()),
-                                    groups: vec![],
-                                    files: vec![
-                                        Rc::new_cyclic(|file| {
-                                            RefCell::new(TextFile {
-                                                parent: root_group.clone(),
-                                                name: "File Three".to_string(),
-                                            })
-                                        }),
-                                        Rc::new_cyclic(|file| {
-                                            RefCell::new(TextFile {
-                                                parent: root_group.clone(),
-                                                name: "File Four".to_string(),
-                                            })
-                                        }),
-                                    ],
-                                })
-                            }),
-                            Rc::new_cyclic(|group3| {
-                                RefCell::new(TextGroup {
-                                    target: target.clone(),
-                                    parent: Some(root_group.clone()),
-                                    groups: vec![],
-                                    files: vec![
-                                        Rc::new_cyclic(|file| {
-                                            RefCell::new(TextFile {
-                                                parent: root_group.clone(),
-                                                name: "File Five".to_string(),
-                                            })
-                                        }),
-                                        Rc::new_cyclic(|file| {
-                                            RefCell::new(TextFile {
-                                                parent: root_group.clone(),
-                                                name: "File SIx".to_string(),
-                                            })
-                                        }),
-                                    ],
-                                })
-                            }),
-                        ],
-                        files: vec![
-                            Rc::new_cyclic(|file| {
-                                RefCell::new(TextFile {
-                                    parent: root_group.clone(),
-                                    name: "File One".to_string(),
-                                })
-                            }),
-                            Rc::new_cyclic(|file| {
-                                RefCell::new(TextFile {
-                                    parent: root_group.clone(),
-                                    name: "File Two".to_string(),
-                                })
-                            }),
-                        ],
-                    })
-                }),
-                map: None,
-            })
-        });
+        let target =
+            TextTarget::new(|target| {
+                TextGroup::new(target.clone(), |root_group| {
+                    (vec![
+                        TextGroup::new(target.clone(), |root_group| {
+                            (vec![], vec![
+                                TextFile::new(
+                                    target.clone(), root_group, "One".to_owned()
+                                ),
+                                TextFile::new(
+                                    target.clone(), root_group, "Two".to_owned()
+                                )
+                            ])
+                        }, Some(root_group))
+                    ], vec![
+                        TextFile::new(
+                            target.clone(), root_group, "Two".to_owned()
+                        )
+                    ])
+                }, None)
+            });
+
         let mut target_mut = RefCell::borrow_mut(&target);
-        target_mut.refresh_state();
+
+        // target_mut.refresh_state();
 
         // println!("{target_mut:#?}");
 
+        for e in target_mut.graph.iter() {
+            println!("{:?}", e.get().files());
+        }
+
+        /*
         let mut map = target_mut.map.as_mut().unwrap();
 
         println!("{:?}", map.next().unwrap());
@@ -154,5 +170,6 @@ mod tests {
         println!("{:?}", map.next().unwrap());
         println!("{:?}", map.next().unwrap());
         println!("{:?}", map.next().unwrap());
+        */
     }
 }
