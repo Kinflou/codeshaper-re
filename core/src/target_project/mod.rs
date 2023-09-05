@@ -3,13 +3,13 @@ pub(crate) mod file_iter;
 pub mod kinds;
 
 // Standard Uses
-use std::any::Any;
 use std::fmt::Debug;
 use std::path::PathBuf;
-use downcast_rs::Downcast;
 
 // Crate Uses
 use crate::workspace::operation::Operation;
+use crate::target_project::kinds::text::TextSolution;
+use crate::target_project::kinds::vcx::VCXSolution;
 
 // External Uses
 use indextree::{Arena, NodeId};
@@ -61,13 +61,16 @@ pub enum FileState {
 }
 
 #[allow(unused)]
-pub fn from_kind_path(kind: &str, path: PathBuf) -> Result<Box<dyn Any>> {
-    use crate::target_project::kinds::text::TextSolution;
-    use crate::target_project::kinds::vcx::VCXSolution;
-
+pub fn from_kind_path(kind: &str, path: PathBuf) -> Result<TargetKind> {
     return match kind {
-        "plain_text" => Ok(TextSolution::from_target(path)?),
-        "visual_studio.vcx" => Ok(VCXSolution::from_path(path)?.into_any()),
+        "plain_text" => Ok(TargetKind::Text(TextSolution::from_target(path)?)),
+        "visual_studio.vcx" => Ok(TargetKind::VCX(VCXSolution::from_path(path)?)),
         _ => bail!("The target kind '{}' is not supported", kind),
     };
+}
+
+
+pub enum TargetKind<'a> {
+    Text(Box<TextSolution<'a>>),
+    VCX(Box<VCXSolution<'a>>),
 }
