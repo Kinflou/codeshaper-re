@@ -1,6 +1,4 @@
-use std::any::Any;
 // Standard Uses
-use downcast_rs::{impl_downcast, Downcast};
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -8,14 +6,15 @@ use std::rc::Rc;
 // Crate Uses
 
 // External Uses
-use indextree::{Arena, NodeId};
+use downcast_rs::{impl_downcast, Downcast};
+use indextree::NodeId;
 
 pub trait Target: Debug {
-    fn root_group(&self) -> &Rc<RefCell<dyn Group>>;
-
-    fn map(&self) -> &Option<TargetIter>;
-
+    fn root_group(&self) -> Option<NodeId>;
+    /*
+    fn map(&self) -> Option<&TargetIter>;
     fn iter(&self) -> TargetIter {
+        /*
         let mut arena: Arena<Rc<RefCell<dyn Group>>> = Arena::new();
 
         fn recurse_new(
@@ -45,22 +44,26 @@ pub trait Target: Debug {
             current: root_id,
             file_index: 0,
         }
+        */
+
+        todo!()
     }
+    */
 
     fn refresh_state(&mut self);
 }
 
-pub trait Group: Debug + Downcast {
-    fn groups(&self) -> &Vec<Rc<RefCell<dyn Group>>>;
-    fn add_group(&mut self, group: Rc<RefCell<dyn Group>>);
-    fn files(&self) -> &Vec<Rc<RefCell<dyn File>>>;
+pub trait Group<T>: Debug + Downcast where T: File {
+    fn target(&self) -> Rc<RefCell<dyn Target>>;
+    fn files(&self) -> &Vec<T>;
 }
-impl_downcast!(Group);
+impl_downcast!(Group<T> where T: File);
 
 pub trait File: Debug {
     fn name(&self) -> &String;
 }
 
+/*
 #[derive(Debug)]
 pub struct TargetIter {
     pub(crate) arena: Arena<Rc<RefCell<dyn Group>>>,
@@ -108,3 +111,4 @@ impl Iterator for TargetIter {
         return Some(file.clone());
     }
 }
+*/

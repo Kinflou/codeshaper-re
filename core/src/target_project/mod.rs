@@ -1,47 +1,37 @@
 // Relative Modules
-pub mod file_map;
-pub(crate) mod iterator;
+pub(crate) mod file_iter;
 pub mod kinds;
 
 // Standard Uses
-use std::cell::RefCell;
+use std::any::Any;
 use std::fmt::Debug;
-use std::path::Path;
-use std::rc::{Rc, Weak};
+use std::path::PathBuf;
+use downcast_rs::Downcast;
 
 // Crate Uses
-use crate::target_project::iterator::TargetIter;
-use crate::target_project::kinds::KINDS_PROVIDER;
 use crate::workspace::operation::Operation;
 
 // External Uses
-use eyre::{bail, Result};
+use indextree::{Arena, NodeId};
+use eyre::{Result, bail};
+
 
 pub trait File: Debug {
     fn name(&self) -> &String;
-    fn parent(&self) -> &Option<Box<dyn Group>>;
-    // fn controller(&self) -> &Option<Controller>;
+    fn parent(&self) -> &NodeId;
+    // fn controller(&self) -> Option<&Controller>;
     fn state(&self) -> &FileState;
 }
 
 pub trait Target: Debug {
-    fn name(&self) -> &String;
-    fn groups(&self) -> &Vec<Weak<RefCell<dyn Group>>>;
-    fn operation(&self) -> &Option<Operation>;
-    fn ast_set(&self);
-    fn add_group(&mut self, group: Weak<RefCell<dyn Group>>);
+    type Group: Group;
 
-    fn file_map(&mut self) -> &mut Option<TargetIter<'_>> {
-        todo!()
-    }
-    fn iter(&self) -> TargetIter {
-        TargetIter {
-            children: self.groups().as_slice(),
-            previous: None,
-            parent: None,
-            file_index: 0,
-        }
-    }
+    fn name(&self) -> &String;
+    fn graph(&mut self) -> &mut Arena<Self::Group>;
+    fn root_group(&self) -> &Option<NodeId>;
+
+    fn operation(&self) -> Option<&Operation>;
+    fn ast_set(&self);
 }
 
 pub trait TargetAlias: Target {
@@ -49,34 +39,18 @@ pub trait TargetAlias: Target {
 }
 
 pub trait Group: Debug {
+    type Group: Group;
+    type File: File;
+
     fn name(&self) -> &String;
-    fn root(&self) -> &Option<Rc<RefCell<dyn Target>>>;
-    fn parent(&self) -> &Option<Weak<RefCell<dyn Group>>>;
-    fn groups(&self) -> &Vec<Weak<RefCell<dyn Group>>>;
-    fn files(&self) -> &Vec<Weak<RefCell<dyn File>>>;
+    fn parent(&self) -> &Option<NodeId>;
+    fn groups(&self) -> &Vec<NodeId>;
+    fn files(&self) -> &Vec<Self::File>;
 
-    fn add_root(&mut self, root: Rc<RefCell<dyn Target>>);
-    fn add_file(&mut self, file: Weak<RefCell<dyn File>>);
+    fn add_group(&mut self, group: Self::Group) -> NodeId;
 }
 
-#[allow(unused)]
-pub fn from_kind_path(kind: &str, path: &'_ Path) -> Result<Rc<RefCell<dyn Target>>> {
-    let Some((_, init_fn)) = KINDS_PROVIDER.get_key_value(kind) else {
-        bail!("The target kind '{}' is not supported", kind)
-    };
-
-    init_fn(path)
-}
-
-pub fn find_initializer(kind: &str) -> Option<&fn(&Path) -> Result<Rc<RefCell<dyn Target>>>> {
-    let Some((_, init_fn)) = KINDS_PROVIDER.get_key_value(kind) else {
-        return None;
-    };
-
-    Some(init_fn)
-}
-
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum FileState {
     #[default]
     Untouched,
@@ -84,4 +58,16 @@ pub enum FileState {
     Processing,
     Processed,
     Error,
+}
+
+#[allow(unused)]
+pub fn from_kind_path(kind: &str, path: PathBuf) -> Result<Box<dyn Any>> {
+    use crate::target_project::kinds::text::TextSolution;
+    use crate::target_project::kinds::vcx::VCXSolution;
+
+    return match kind {
+        "plain_text" => Ok(TextSolution::from_target(path)?),
+        "visual_studio.vcx" => Ok(VCXSolution::from_path(path)?.into_any()),
+        _ => bail!("The target kind '{}' is not supported", kind),
+    };
 }

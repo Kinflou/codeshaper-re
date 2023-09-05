@@ -21,7 +21,7 @@ pub static NAVIGATOR_PROVIDERS: Lazy<HashMap<&str, fn() -> Box<dyn NavigatorProv
 
 pub fn find_provider(name: &str) -> Option<Box<dyn NavigatorProvider>> {
     let Some(provider) = NAVIGATOR_PROVIDERS.get_key_value(name) else {
-        None
+        return None;
     };
 
     Some(provider.1())
