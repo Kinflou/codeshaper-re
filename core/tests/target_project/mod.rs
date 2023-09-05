@@ -7,18 +7,16 @@ use std::path::Path;
 use codeshaper_core::target_project;
 use codeshaper_core::target_project::kinds::text::group::TextGroup;
 use codeshaper_core::target_project::kinds::text::TextSolution;
+use codeshaper_core::target_project::TargetKind;
 
 
 #[allow(unused)]
 #[test]
 fn load_plain_text_target() {
-    let mut target = target_project::from_kind_path(
+    let Ok(TargetKind::Text(mut target)) = target_project::from_kind_path(
         "plain_text",
         Path::new("/tests/data/test_workspace/target/origin/").to_path_buf(),
-    )
-    .unwrap()
-    .downcast::<TextSolution>()
-    .unwrap();
+    ) else { panic!("Something something wrong type, expected plain text") };
 
     let expected_files = vec!["hello_world.scl", "hello_new_world.scl"];
 
